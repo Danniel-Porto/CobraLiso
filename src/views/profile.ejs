@@ -1,0 +1,73 @@
+<%- include('partials/head', { title: 'Meu perfil' }) %>
+<%- include('partials/nav', { active }) %>
+
+<main class="page">
+  <div class="page-header">
+    <h1>Meu perfil</h1>
+    <p>Atualize seu nome de usuário e senha de acesso.</p>
+  </div>
+
+  <div class="detail-grid">
+    <section class="card profile-card">
+      <div class="profile-header">
+        <span class="user-avatar profile-avatar"><%= user.name.charAt(0).toUpperCase() %></span>
+        <div>
+          <h2 class="card-title mt-0 mb-0"><%= user.name %></h2>
+          <p class="card-subtitle mb-0">
+            <% if (user.role === 'admin') { %>
+            <span class="badge badge-admin">administrador</span>
+            <% } else { %>
+            <span class="badge badge-active">usuário</span>
+            <% } %>
+            · membro desde <%= new Date(user.createdAt).toLocaleDateString("pt-BR") %>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      <% if (success) { %>
+      <div class="alert alert-success"><%= success %></div>
+      <% } %>
+
+      <h2 class="card-title">Editar conta</h2>
+      <p class="card-subtitle">Para qualquer alteração, confirme com sua senha atual.</p>
+
+      <form action="/profile" method="post">
+        <div class="form-group">
+          <label for="name">Nome de usuário</label>
+          <input id="name" name="name" type="text" value="<%= user.name %>" required />
+          <p class="hint">É assim que você entra no sistema.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="currentPassword">Senha atual</label>
+          <input id="currentPassword" name="currentPassword" type="password" placeholder="Obrigatória para salvar" required />
+        </div>
+
+        <hr class="form-divider" />
+
+        <h3 class="form-section-title">Alterar senha</h3>
+        <p class="hint" style="margin-bottom:16px;">Deixe em branco se não quiser trocar a senha.</p>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="newPassword">Nova senha</label>
+            <input id="newPassword" name="newPassword" type="password" placeholder="Mín. 4 caracteres" autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirmar nova senha</label>
+            <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Repita a nova senha" autocomplete="new-password" />
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Salvar alterações</button>
+      </form>
+    </section>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

@@ -137,6 +137,22 @@ a:hover {
   gap: 8px;
 }
 
+.user-chip-link {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  transition: background 0.15s;
+}
+
+.user-chip-link:hover {
+  background: var(--bg-elevated);
+  color: inherit;
+}
+
+.user-chip-link.active {
+  background: var(--accent-soft);
+}
+
 .user-avatar {
   width: 32px;
   height: 32px;
@@ -825,6 +841,30 @@ tr:hover td {
 
 .mb-0 {
   margin-bottom: 0;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  font-size: 1.4rem;
+}
+
+.form-divider {
+  border: none;
+  border-top: 1px solid var(--border-soft);
+  margin: 24px 0;
+}
+
+.form-section-title {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 /* Responsive */

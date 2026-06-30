@@ -10,6 +10,7 @@ const { db, pool, schema } = require("./db");
 const { requireAuth, requireAdmin } = require("./middleware/auth");
 const { authRoutes } = require("./routes/auth");
 const { usersRoutes } = require("./routes/users");
+const { profileRoutes } = require("./routes/profile");
 const { loansRoutes } = require("./routes/loans");
 const { paymentsRoutes } = require("./routes/payments");
 const { closeMonthForAllLoans } = require("./services/monthClose");
@@ -61,6 +62,7 @@ app.use(requireAuth);
 app.use(loansRoutes({ db, schema }));
 app.use(paymentsRoutes({ db, schema }));
 app.use(usersRoutes({ db, schema }));
+app.use(profileRoutes({ db, schema }));
 
 app.post("/admin/close-month", requireAdmin, async (req, res) => {
   await closeMonthForAllLoans(db, schema, req.session.user.id);
