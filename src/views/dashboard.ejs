@@ -1,0 +1,90 @@
+<%- include('partials/head', { title: 'Início' }) %>
+<%- include('partials/nav', { active }) %>
+
+<main class="page">
+  <div class="page-header">
+    <h1>Olá, <%= currentUser.name %> 👋</h1>
+    <p>Veja seus empréstimos e acompanhe saldos em tempo real.</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card stat-owe">
+      <div class="stat-label">Você deve</div>
+      <div class="stat-value"><%= formatMoney(totalOwed) %></div>
+    </div>
+    <div class="stat-card stat-receive">
+      <div class="stat-label">A receber</div>
+      <div class="stat-value"><%= formatMoney(totalToReceive) %></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Empréstimos ativos</div>
+      <div class="stat-value"><%= loans.filter(l => l.status === 'active').length %></div>
+    </div>
+  </div>
+
+  <% if (currentUser.role === 'admin') { %>
+  <div class="admin-banner">
+    <div class="admin-banner-text">
+      <h3>⚡ Fechamento mensal</h3>
+      <p>Aplica juros sobre o saldo de todos os empréstimos ativos deste mês.</p>
+    </div>
+    <form action="/admin/close-month" method="post">
+      <button type="submit" class="btn btn-secondary">Executar agora</button>
+    </form>
+  </div>
+  <% } %>
+
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h2 class="card-title mt-0 mb-0">Meus empréstimos</h2>
+      </div>
+      <a href="/loans/new" class="btn btn-primary btn-sm">+ Novo empréstimo</a>
+    </div>
+
+    <% if (!loans.length) { %>
+    <div class="empty-state">
+      <div class="empty-state-icon">💸</div>
+      <h3>Nenhum empréstimo ainda</h3>
+      <p>Crie o primeiro empréstimo para começar a acompanhar pagamentos e juros.</p>
+      <a href="/loans/new" class="btn btn-primary">Criar empréstimo</a>
+    </div>
+    <% } else { %>
+    <div class="loan-grid">
+      <% loans.forEach((loan) => { %>
+      <a href="/loans/<%= loan.id %>" class="loan-card">
+        <div class="loan-card-top">
+          <div>
+            <div class="loan-parties">
+              <%= loan.lenderName %>
+              <span class="loan-hero-arrow">→</span>
+              <%= loan.borrowerName %>
+            </div>
+            <div class="loan-role">
+              <% if (loan.isLender) { %>Você emprestou<% } else if (loan.isBorrower) { %>Você pegou emprestado<% } %>
+            </div>
+          </div>
+          <span class="badge <%= statusBadge(loan.status) %>"><%= statusLabel(loan.status) %></span>
+        </div>
+        <div class="loan-card-meta">
+          <div class="loan-meta-item">
+            <label>Principal</label>
+            <span><%= formatMoney(loan.principal) %></span>
+          </div>
+          <div class="loan-meta-item">
+            <label>Taxa/mês</label>
+            <span><%= Number(loan.interestRate).toFixed(2) %>%</span>
+          </div>
+          <div class="loan-meta-item">
+            <label>Saldo</label>
+            <span class="balance"><%= formatMoney(loan.balance) %></span>
+          </div>
+        </div>
+      </a>
+      <% }) %>
+    </div>
+    <% } %>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,17 @@
+<%- include('partials/head', { title: 'Erro' }) %>
+<% if (currentUser) { %><%- include('partials/nav', { active: '' }) %><% } %>
+
+<main class="page">
+  <section class="card" style="max-width:480px;margin:60px auto;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:16px;">😕</div>
+    <h1 class="card-title">Algo deu errado</h1>
+    <div class="alert alert-error" style="text-align:left;"><%= message %></div>
+    <% if (currentUser) { %>
+    <a href="/" class="btn btn-primary">Voltar ao início</a>
+    <% } else { %>
+    <a href="/login" class="btn btn-primary">Ir para login</a>
+    <% } %>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

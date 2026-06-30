@@ -1,0 +1,31 @@
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand">
+      <span class="brand-icon" aria-hidden="true">🐍</span>
+      <span class="brand-text">Cobra Liso</span>
+    </a>
+
+    <% if (currentUser) { %>
+    <nav class="main-nav" aria-label="Principal">
+      <a href="/" class="nav-link <%= active === 'dashboard' ? 'active' : '' %>">Início</a>
+      <a href="/loans/new" class="nav-link <%= active === 'new-loan' ? 'active' : '' %>">Novo empréstimo</a>
+      <% if (currentUser.role === 'admin') { %>
+      <a href="/users" class="nav-link <%= active === 'users' ? 'active' : '' %>">Usuários</a>
+      <% } %>
+    </nav>
+
+    <div class="user-menu">
+      <div class="user-chip">
+        <span class="user-avatar"><%= currentUser.name.charAt(0).toUpperCase() %></span>
+        <span class="user-name"><%= currentUser.name %></span>
+        <% if (currentUser.role === 'admin') { %>
+        <span class="badge badge-admin">admin</span>
+        <% } %>
+      </div>
+      <form action="/logout" method="post">
+        <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
+      </form>
+    </div>
+    <% } %>
+  </div>
+</header>

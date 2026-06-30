@@ -1,0 +1,85 @@
+<%- include('partials/head', { title: 'Usuários' }) %>
+<%- include('partials/nav', { active }) %>
+
+<main class="page">
+  <div class="page-header">
+    <h1>Usuários</h1>
+    <p>Cadastre os amigos que vão usar o Cobra Liso.</p>
+  </div>
+
+  <div class="detail-grid">
+    <section class="card">
+      <h2 class="card-title">Novo usuário</h2>
+      <p class="card-subtitle">Cada pessoa entra com nome e senha.</p>
+
+      <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      <% if (success) { %>
+      <div class="alert alert-success"><%= success %></div>
+      <% } %>
+
+      <form action="/users" method="post">
+        <div class="form-group">
+          <label for="name">Nome</label>
+          <input id="name" name="name" placeholder="Ex: João" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Senha inicial</label>
+          <input id="password" name="password" type="password" placeholder="Mínimo 4 caracteres" required />
+        </div>
+
+        <div class="form-group">
+          <label for="role">Papel</label>
+          <select id="role" name="role">
+            <option value="user">Usuário comum</option>
+            <option value="admin">Administrador</option>
+          </select>
+          <p class="hint">Admins podem cadastrar usuários e executar fechamento mensal.</p>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Criar usuário</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">Cadastrados</h2>
+      <p class="card-subtitle"><%= users.length %> usuário(s) no sistema.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Papel</th>
+              <th>Desde</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach((user) => { %>
+            <tr>
+              <td>
+                <span class="user-avatar" style="display:inline-flex;width:28px;height:28px;font-size:0.75rem;margin-right:8px;vertical-align:middle;">
+                  <%= user.name.charAt(0).toUpperCase() %>
+                </span>
+                <strong><%= user.name %></strong>
+              </td>
+              <td>
+                <% if (user.role === 'admin') { %>
+                <span class="badge badge-admin">admin</span>
+                <% } else { %>
+                <span class="badge badge-active">usuário</span>
+                <% } %>
+              </td>
+              <td class="muted"><%= new Date(user.createdAt).toLocaleDateString("pt-BR") %></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

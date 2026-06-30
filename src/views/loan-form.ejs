@@ -1,0 +1,53 @@
+<%- include('partials/head', { title: 'Novo empréstimo' }) %>
+<%- include('partials/nav', { active }) %>
+
+<main class="page">
+  <div class="page-header">
+    <h1>Novo empréstimo</h1>
+    <p>Registre um valor emprestado entre dois amigos e defina a taxa mensal.</p>
+  </div>
+
+  <section class="card" style="max-width:560px;">
+    <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form action="/loans" method="post">
+      <div class="form-group">
+        <label for="lenderId">Quem empresta (credor)</label>
+        <select id="lenderId" name="lenderId" required>
+          <option value="">Selecione…</option>
+          <% users.forEach((user) => { %>
+          <option value="<%= user.id %>"><%= user.name %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="borrowerId">Quem recebe (devedor)</label>
+        <select id="borrowerId" name="borrowerId" required>
+          <option value="">Selecione…</option>
+          <% users.forEach((user) => { %>
+          <option value="<%= user.id %>"><%= user.name %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="principal">Valor (R$)</label>
+          <input id="principal" name="principal" type="number" step="0.01" min="0.01" placeholder="500,00" required />
+        </div>
+        <div class="form-group">
+          <label for="interestRate">Taxa mensal (%)</label>
+          <input id="interestRate" name="interestRate" type="number" step="0.01" min="0" placeholder="2,3" required />
+          <p class="hint">Juros compostos aplicados no fechamento do mês.</p>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Criar empréstimo</button>
+    </form>
+  </section>
+</main>
+
+<%- include('partials/footer') %>
