@@ -1,6 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-const { eq } = require("drizzle-orm");
+const { sql } = require("drizzle-orm");
 
 function authRoutes({ db, schema }) {
   const router = express.Router();
@@ -21,7 +21,11 @@ function authRoutes({ db, schema }) {
       return res.status(400).render("login", { error: "Informe nome e senha." });
     }
 
-    const result = await db.select().from(users).where(eq(users.name, name)).limit(1);
+    const result = await db
+      .select()
+      .from(users)
+      .where(sql`lower(${users.name}) = lower(${name})`)
+      .limit(1);
     const user = result[0];
 
     if (!user) {

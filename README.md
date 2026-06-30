@@ -78,6 +78,19 @@ docker compose up -d --build
 
 3. Acesse em `http://<ip-da-vps>:3000`.
 
+## Railway
+
+1. Crie um servico **PostgreSQL** no projeto e conecte `DATABASE_URL` na app (reference variable).
+2. Defina `SESSION_SECRET` e `NODE_ENV=production`.
+3. O comando `npm start` ja roda `drizzle-kit migrate` antes de subir o servidor.
+4. Apos o primeiro deploy, execute uma vez no Railway (**Run Command**):
+
+```bash
+npm run seed:admin -- "Administrador" "1234"
+```
+
+5. Login: nome + senha (nao diferencia maiusculas/minusculas).
+
 ## Regras de negocio principais
 
 - Pagamentos reduzem saldo imediatamente.
