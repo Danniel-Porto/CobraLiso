@@ -6,6 +6,10 @@
   <div class="alert alert-error"><%= error %></div>
   <% } %>
 
+  <% if (success) { %>
+  <div class="alert alert-success"><%= success %></div>
+  <% } %>
+
   <div class="loan-hero">
     <div>
       <div class="loan-hero-parties">
@@ -17,6 +21,19 @@
         <span>Principal: <strong><%= formatMoney(loan.principal) %></strong></span>
         <span>Taxa: <strong><%= Number(loan.interestRate).toFixed(2) %>%/mês</strong></span>
         <span class="badge <%= statusBadge(loan.status) %>"><%= statusLabel(loan.status) %></span>
+      </div>
+      <div class="hero-actions">
+        <a href="/loans/<%= loan.id %>/edit" class="btn btn-secondary btn-sm">✏️ Editar</a>
+        <button
+          type="button"
+          class="btn btn-danger btn-sm"
+          data-confirm-delete
+          data-confirm-title="Excluir empréstimo?"
+          data-confirm-message="O empréstimo será ocultado da lista. Pagamentos e histórico permanecem no banco para recuperação."
+          data-confirm-action="/loans/<%= loan.id %>/delete"
+        >
+          🗑️ Excluir
+        </button>
       </div>
     </div>
     <div class="loan-hero-balance">
@@ -162,6 +179,7 @@
             <th>Valor</th>
             <th>Obs.</th>
             <th>Comprovante</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -173,7 +191,7 @@
             <td class="muted"><%= tx.note || "—" %></td>
             <td>
               <% if (tx.attachmentBase64) { %>
-              <a href="/transactions/<%= tx.id %>/attachment/download" class="btn btn-ghost btn-sm">📄 Baixar PDF</a>
+              <a href="/transactions/<%= tx.id %>/attachment/download" class="btn btn-ghost btn-sm">📄 PDF</a>
               <% } else if (tx.type === 'payment') { %>
               <form action="/transactions/<%= tx.id %>/attachment" method="post" enctype="multipart/form-data" class="inline-form">
                 <div class="file-input-wrap">
@@ -184,6 +202,25 @@
                 </div>
                 <button type="submit" class="btn btn-ghost btn-sm">Anexar</button>
               </form>
+              <% } else { %>
+              <span class="muted">—</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (tx.type === 'payment') { %>
+              <div class="row-actions">
+                <a href="/transactions/<%= tx.id %>/edit" class="btn btn-ghost btn-sm">Editar</a>
+                <button
+                  type="button"
+                  class="btn btn-danger btn-sm"
+                  data-confirm-delete
+                  data-confirm-title="Excluir pagamento?"
+                  data-confirm-message="O pagamento de <%= formatMoney(tx.amount) %> será removido e o saldo do empréstimo será recalculado."
+                  data-confirm-action="/transactions/<%= tx.id %>/delete"
+                >
+                  Excluir
+                </button>
+              </div>
               <% } else { %>
               <span class="muted">—</span>
               <% } %>

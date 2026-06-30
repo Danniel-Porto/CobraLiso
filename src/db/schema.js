@@ -18,6 +18,7 @@ const loans = pgTable("loans", {
   balance: numeric("balance", { precision: 14, scale: 2 }).notNull(),
   status: varchar("status", { length: 20 }).notNull().default("active"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
 
 const transactions = pgTable("transactions", {
@@ -31,6 +32,7 @@ const transactions = pgTable("transactions", {
   attachmentMimeType: varchar("attachment_mime_type", { length: 100 }),
   attachmentBase64: text("attachment_base64"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
 
 const monthClosures = pgTable("month_closures", {

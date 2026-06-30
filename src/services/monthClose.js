@@ -1,4 +1,4 @@
-const { and, eq, gt } = require("drizzle-orm");
+const { and, eq, gt, isNull } = require("drizzle-orm");
 const { applyMonthlyInterest } = require("./interest");
 
 function getReferenceMonth(now = new Date()) {
@@ -10,7 +10,7 @@ async function closeMonthForAllLoans(db, schema, actorId) {
   const activeLoans = await db
     .select()
     .from(loans)
-    .where(and(eq(loans.status, "active"), gt(loans.balance, "0")));
+    .where(and(eq(loans.status, "active"), gt(loans.balance, "0"), isNull(loans.deletedAt)));
 
   let processed = 0;
   const referenceMonth = getReferenceMonth();

@@ -1,16 +1,14 @@
 const express = require("express");
-const { and, desc, eq, or } = require("drizzle-orm");
+const { and, desc, eq, isNull, or } = require("drizzle-orm");
 const { simulatePayoff } = require("../services/interest");
-
-function parseMoney(value) {
-  const normalized = String(value || "").replace(",", ".");
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) ? parsed : NaN;
-}
+const { recalculateLoanBalance } = require("../services/loanBalance");
+const { parseMoney, getActiveLoan } = require("../lib/loanAccess");
 
 function loansRoutes({ db, schema }) {
   const router = express.Router();
   const { users, loans, transactions } = schema;
+
+  const notDeleted = isNull(loans.deletedAt);
 
   router.get("/", async (req, res) => {
     const userId = req.session.user.id;
@@ -18,7 +16,7 @@ function loansRoutes({ db, schema }) {
     const myLoans = await db
       .select()
       .from(loans)
-      .where(or(eq(loans.lenderId, userId), eq(loans.borrowerId, userId)))
+      .where(and(or(eq(loans.lenderId, userId), eq(loans.borrowerId, userId)), notDeleted))
       .orderBy(desc(loans.createdAt));
 
     const allUsers = await db.select().from(users);
@@ -81,22 +79,79 @@ function loansRoutes({ db, schema }) {
     return res.redirect("/");
   });
 
+  router.get("/loans/:id/edit", async (req, res) => {
+    const loan = await getActiveLoan(db, schema, req.params.id, req.session.user);
+    if (!loan) {
+      return res.status(404).render("error", { message: "Emprestimo nao encontrado." });
+    }
+
+    const allUsers = await db.select().from(users).orderBy(users.name);
+    return res.render("loan-edit", { loan, users: allUsers, error: null, active: "dashboard" });
+  });
+
+  router.post("/loans/:id/edit", async (req, res) => {
+    const loan = await getActiveLoan(db, schema, req.params.id, req.session.user);
+    if (!loan) {
+      return res.status(404).render("error", { message: "Emprestimo nao encontrado." });
+    }
+
+    const lenderId = String(req.body.lenderId || "");
+    const borrowerId = String(req.body.borrowerId || "");
+    const principal = parseMoney(req.body.principal);
+    const interestRate = parseMoney(req.body.interestRate);
+    const allUsers = await db.select().from(users).orderBy(users.name);
+
+    if (!lenderId || !borrowerId || lenderId === borrowerId || !Number.isFinite(principal) || principal <= 0 || !Number.isFinite(interestRate) || interestRate < 0) {
+      return res.status(400).render("loan-edit", {
+        loan,
+        users: allUsers,
+        error: "Dados invalidos. Verifique credor, devedor, valor e taxa.",
+        active: "dashboard",
+      });
+    }
+
+    await db
+      .update(loans)
+      .set({
+        lenderId,
+        borrowerId,
+        principal: principal.toFixed(2),
+        interestRate: interestRate.toFixed(4),
+      })
+      .where(eq(loans.id, loan.id));
+
+    await recalculateLoanBalance(db, schema, loan.id);
+    return res.redirect(`/loans/${loan.id}`);
+  });
+
+  router.post("/loans/:id/delete", async (req, res) => {
+    const loan = await getActiveLoan(db, schema, req.params.id, req.session.user);
+    if (!loan) {
+      return res.status(404).render("error", { message: "Emprestimo nao encontrado." });
+    }
+
+    await db
+      .update(loans)
+      .set({
+        deletedAt: new Date(),
+        status: "cancelled",
+      })
+      .where(eq(loans.id, loan.id));
+
+    return res.redirect("/");
+  });
+
   router.get("/loans/:id", async (req, res) => {
-    const loanId = req.params.id;
     const userId = req.session.user.id;
-
-    const selected = await db.select().from(loans).where(eq(loans.id, loanId)).limit(1);
-
-    const loan = selected[0];
-    const isAdmin = req.session.user.role === "admin";
-    if (!loan || (!isAdmin && loan.lenderId !== userId && loan.borrowerId !== userId)) {
+    const loan = await getActiveLoan(db, schema, req.params.id, req.session.user);
+    if (!loan) {
       return res.status(404).render("error", { message: "Emprestimo nao encontrado." });
     }
 
     const txs = await db
       .select()
       .from(transactions)
-      .where(eq(transactions.loanId, loan.id))
+      .where(and(eq(transactions.loanId, loan.id), isNull(transactions.deletedAt)))
       .orderBy(desc(transactions.createdAt));
 
     const [lender] = await db.select().from(users).where(eq(users.id, loan.lenderId)).limit(1);
@@ -109,6 +164,7 @@ function loansRoutes({ db, schema }) {
       transactions: txs,
       simulation: null,
       error: null,
+      success: null,
       active: "dashboard",
       isBorrower: loan.borrowerId === userId,
       isLender: loan.lenderId === userId,
@@ -116,11 +172,9 @@ function loansRoutes({ db, schema }) {
   });
 
   router.post("/loans/:id/simulate", async (req, res) => {
-    const loanId = req.params.id;
-    const [loan] = await db.select().from(loans).where(eq(loans.id, loanId)).limit(1);
     const userId = req.session.user.id;
-    const isAdmin = req.session.user.role === "admin";
-    if (!loan || (!isAdmin && loan.lenderId !== userId && loan.borrowerId !== userId)) {
+    const loan = await getActiveLoan(db, schema, req.params.id, req.session.user);
+    if (!loan) {
       return res.status(404).render("error", { message: "Emprestimo nao encontrado." });
     }
 
@@ -141,7 +195,7 @@ function loansRoutes({ db, schema }) {
     const txs = await db
       .select()
       .from(transactions)
-      .where(eq(transactions.loanId, loan.id))
+      .where(and(eq(transactions.loanId, loan.id), isNull(transactions.deletedAt)))
       .orderBy(desc(transactions.createdAt));
     const [lender] = await db.select().from(users).where(eq(users.id, loan.lenderId)).limit(1);
     const [borrower] = await db.select().from(users).where(eq(users.id, loan.borrowerId)).limit(1);
@@ -153,6 +207,7 @@ function loansRoutes({ db, schema }) {
       transactions: txs,
       simulation,
       error: null,
+      success: null,
       active: "dashboard",
       isBorrower: loan.borrowerId === userId,
       isLender: loan.lenderId === userId,

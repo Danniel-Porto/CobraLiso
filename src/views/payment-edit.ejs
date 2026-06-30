@@ -1,0 +1,55 @@
+<%- include('partials/head', { title: 'Editar pagamento' }) %>
+<%- include('partials/nav', { active }) %>
+
+<main class="page">
+  <div class="page-header">
+    <h1>Editar pagamento</h1>
+    <p>Empréstimo: <%= formatMoney(loan.balance) %> de saldo atual · registrado em <%= new Date(transaction.createdAt).toLocaleString("pt-BR") %></p>
+  </div>
+
+  <section class="card" style="max-width:560px;">
+    <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form action="/transactions/<%= transaction.id %>/edit" method="post" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="amount">Valor pago (R$)</label>
+        <input id="amount" name="amount" type="number" step="0.01" min="0.01" value="<%= Number(transaction.amount).toFixed(2) %>" required />
+        <p class="hint">O saldo do empréstimo será recalculado após salvar.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="note">Observação</label>
+        <textarea id="note" name="note" rows="2"><%= transaction.note || '' %></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Comprovante (PDF)</label>
+        <% if (transaction.attachmentBase64) { %>
+        <p class="hint">
+          <a href="/transactions/<%= transaction.id %>/attachment/download">Baixar comprovante atual</a>
+        </p>
+        <label class="checkbox-label">
+          <input type="checkbox" name="removeAttachment" value="1" />
+          Remover comprovante atual
+        </label>
+        <% } %>
+        <div class="file-input-wrap" style="margin-top:10px;">
+          <div class="file-input-display">
+            <span class="icon">📎</span>
+            <span class="file-label"><%= transaction.attachmentBase64 ? 'Substituir PDF…' : 'Escolher PDF…' %></span>
+          </div>
+          <input name="receiptFile" type="file" accept="application/pdf,.pdf" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="/loans/<%= loan.id %>" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Salvar pagamento</button>
+      </div>
+    </form>
+  </section>
+</main>
+
+<%- include('partials/footer') %>
