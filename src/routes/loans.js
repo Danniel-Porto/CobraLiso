@@ -102,7 +102,6 @@ function loansRoutes({ db, schema }) {
     const [lender] = await db.select().from(users).where(eq(users.id, loan.lenderId)).limit(1);
     const [borrower] = await db.select().from(users).where(eq(users.id, loan.borrowerId)).limit(1);
 
-    const userId = req.session.user.id;
     return res.render("loan-detail", {
       loan,
       lender,
